@@ -6,8 +6,11 @@ export default defineConfig({
   output: {
     file: 'dist/sober.min.js',
     format: 'umd',
-    sourcemap: true,
+    sourcemap: false,
     name: 'sober'
   },
   plugins: [nodeResolve(), uglify()]
 })
+
+
+// dev/rollup.config.js 

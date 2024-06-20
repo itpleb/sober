@@ -1,7 +1,7 @@
-import { builder, html } from './core/element.js'
-import type { JSXAttributes } from './core/types/HTMLAttributes.js'
+import { builder, html } from "./core/element.js";
+import type { JSXAttributes } from "./core/types/HTMLAttributes.js";
 
-const style = /*css*/`
+const style = /*css*/ `
 :host{
   display: inline-block;
   vertical-align: middle;
@@ -101,8 +101,10 @@ const style = /*css*/`
   flex-grow: 1;
 }
 ::slotted(input[type=text]),
+::slotted(input[type=password]),
+::slotted(select),
 ::slotted(textarea),
-.textarea{
+.textarea,select{
   border: none;
   padding: 0 16px;
   min-height: 56px;
@@ -117,11 +119,11 @@ const style = /*css*/`
   font-family: inherit;
   display: block;
 }
-::slotted(textarea){
+::slotted(textarea),::slotted(select){
   height: 0;
 }
-::slotted(textarea),
-.textarea{
+::slotted(textarea),::slotted(select),
+.textarea,.select{
   padding: 16px;
   scrollbar-width: none;
   resize: none;
@@ -130,7 +132,7 @@ const style = /*css*/`
   word-break: break-all;
   white-space: pre-wrap;
 }
-.textarea{
+.textarea,.select{
   position: absolute;
   left: 0;
   top: 0;
@@ -138,10 +140,12 @@ const style = /*css*/`
   pointer-events: none;
   visibility: hidden;
 }
-.textarea::after{
+.textarea::after,.select::after,{
   content: ' ';
 }
 ::slotted(input[type=text])::placeholder,
+::slotted(input[type=password]),
+::slotted(select)::placeholder,
 ::slotted(textarea)::placeholder{
   color: var(--s-color-outline, #777680);
 }
@@ -157,86 +161,117 @@ const style = /*css*/`
 .focus ::slotted([slot=end]){
   color: currentColor;
 }
-`
+`;
 
-const name = 's-text-field'
+const name = "s-text-field";
 const props = {
-  label: ''
-}
+  label: "",
+};
 
 export class TextField extends builder({
-  name, style, props, propSyncs: true,
+  name,
+  style,
+  props,
+  propSyncs: true,
   setup() {
-    let container: HTMLDivElement
-    let label: HTMLSpanElement
-    let inputSlot: HTMLSlotElement
-    let input: HTMLInputElement | HTMLTextAreaElement
-    let inputShaodw: HTMLDivElement
+    let container: HTMLDivElement;
+    let label: HTMLSpanElement;
+    let inputSlot: HTMLSlotElement;
+    let input: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+    let inputShaodw: HTMLDivElement;
     const onInput = () => {
-      if (!input || input.parentNode !== this) return
-      input.value === '' ? container.classList.remove('not-empty') : container.classList.add('not-empty')
-      if (input instanceof HTMLTextAreaElement) {
-        inputShaodw.textContent = input.value
-        if (input.offsetHeight !== inputShaodw.offsetHeight) input.style.height = `${inputShaodw.offsetHeight}px`
+      if (!input || input.parentNode !== this) return;
+      input.value === ""
+        ? container.classList.remove("not-empty")
+        : container.classList.add("not-empty");
+      if (
+        input instanceof HTMLTextAreaElement ||
+        input instanceof HTMLSelectElement
+      ) {
+        inputShaodw.textContent = input.value;
+        if (input.offsetHeight !== inputShaodw.offsetHeight)
+          input.style.height = `${inputShaodw.offsetHeight}px`;
       }
-    }
-    const bindEvent = (el: HTMLInputElement | HTMLTextAreaElement) => {
-      el.addEventListener('input', onInput)
-      const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value')
+    };
+    const bindEvent = (
+      el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    ) => {
+      el.addEventListener("input", onInput);
+      const descriptor = Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(el),
+        "value"
+      );
       if (descriptor) {
-        const oldSet = descriptor.set
+        const oldSet = descriptor.set;
         descriptor.set = (val: string) => {
-          oldSet?.apply(el, [val])
-          if (!input || input.parentNode !== this) return
-          onInput()
-        }
-        Object.defineProperty(el, 'value', descriptor)
+          oldSet?.apply(el, [val]);
+          if (!input || input.parentNode !== this) return;
+          onInput();
+        };
+        Object.defineProperty(el, "value", descriptor);
       }
-      input = el
-      onInput()
-    }
+      input = el;
+      onInput();
+    };
     const inputSlotChange = () => {
-      const el = inputSlot.assignedElements()[0]
-      if (!el || (!(el instanceof HTMLInputElement) && !(el instanceof HTMLTextAreaElement))) return
-      bindEvent(el)
-    }
+      const el = inputSlot.assignedElements()[0];
+      if (
+        !el ||
+        (!(el instanceof HTMLInputElement) &&
+          !(el instanceof HTMLTextAreaElement) &&
+          !(el instanceof HTMLSelectElement))
+      )
+        return;
+
+      bindEvent(el);
+    };
     return {
       watches: {
-        label: (value) => label.textContent = value
+        label: (value) => (label.textContent = value),
       },
       render: () => html`
-        <div class="container" ref="${(el: HTMLDivElement) => container = el}">
+        <div
+          class="container"
+          ref="${(el: HTMLDivElement) => (container = el)}"
+        >
           <div class="outline"></div>
           <div class="label">
-            <span ref="${(el: HTMLSpanElement) => label = el}"></span>
+            <span ref="${(el: HTMLSpanElement) => (label = el)}"></span>
           </div>
           <div class="content">
-            <slot style="min-height: inherit;" @slotchange="${inputSlotChange}" ref="${(el: HTMLSlotElement) => inputSlot = el}"></slot>
-            <div ref="${(el: HTMLDivElement) => inputShaodw = el}" class="textarea"></div>
+            <slot
+              style="min-height: inherit;"
+              @slotchange="${inputSlotChange}"
+              ref="${(el: HTMLSlotElement) => (inputSlot = el)}"
+            ></slot>
+            <div
+              ref="${(el: HTMLDivElement) => (inputShaodw = el)}"
+              class="textarea"
+            ></div>
           </div>
           <slot name="end"></slot>
         </div>
-      `
-    }
-  }
-}) { }
+      `,
+    };
+  },
+}) {}
 
-TextField.define()
+TextField.define();
 
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      [name]: Partial<typeof props> & JSXAttributes
+      [name]: Partial<typeof props> & JSXAttributes;
     }
   }
   interface HTMLElementTagNameMap {
-    [name]: TextField
+    [name]: TextField;
   }
 }
 
 //@ts-ignore
-declare module 'vue' {
+declare module "vue" {
   export interface GlobalComponents {
-    [name]: typeof props
+    [name]: typeof props;
   }
 }
