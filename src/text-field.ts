@@ -120,7 +120,7 @@ const style = /*css*/ `
   display: block;
 }
 ::slotted(textarea),::slotted(select){
-  height: 0;
+  height: auto;
 }
 ::slotted(textarea),::slotted(select),
 .textarea,.select{
@@ -140,11 +140,11 @@ const style = /*css*/ `
   pointer-events: none;
   visibility: hidden;
 }
-.textarea::after,.select::after,{
+.textarea::after,.select::after{
   content: ' ';
 }
 ::slotted(input[type=text])::placeholder,
-::slotted(input[type=password]),
+::slotted(input[type=password])::placeholder,
 ::slotted(select)::placeholder,
 ::slotted(textarea)::placeholder{
   color: var(--s-color-outline, #777680);
@@ -269,7 +269,7 @@ declare global {
   }
 }
 
-//@ts-ignore
+// @ts-ignore
 declare module "vue" {
   export interface GlobalComponents {
     [name]: typeof props;
